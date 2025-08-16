@@ -1,4 +1,322 @@
-<script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Downloader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 500px;
+            overflow: hidden;
+        }
+        
+        header {
+            background: #ff0000;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .logo i {
+            font-size: 36px;
+        }
+        
+        .tagline {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        .main-content {
+            padding: 30px;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus {
+            border-color: #ff0000;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.2);
+        }
+        
+        .options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .option-card {
+            flex: 1;
+            min-width: 120px;
+            background: white;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .option-card.selected {
+            border-color: #ff0000;
+            background-color: rgba(255, 0, 0, 0.05);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .option-card i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #ff0000;
+        }
+        
+        .option-card h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .option-card p {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .quality-select {
+            margin-bottom: 25px;
+        }
+        
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: white;
+        }
+        
+        button {
+            width: 100%;
+            padding: 16px;
+            background: #ff0000;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        button:hover {
+            background: #cc0000;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .instructions {
+            background-color: #f9f9f9;
+            border-left: 4px solid #ff0000;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 25px;
+            font-size: 14px;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #f1f1f1;
+            color: #666;
+            font-size: 13px;
+        }
+        
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #ff0000;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .result.success {
+            color: #28a745;
+        }
+        
+        .result.error {
+            color: #dc3545;
+        }
+        
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 20px;
+            }
+            
+            .options {
+                flex-direction: column;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fab fa-youtube"></i>
+                <span>YouTube Downloader</span>
+            </div>
+            <div class="tagline">Download videos and audio in seconds</div>
+        </header>
+        
+        <div class="main-content">
+            <div class="input-group">
+                <label for="url">YouTube URL:</label>
+                <input type="text" id="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+            </div>
+            
+            <div class="options">
+                <div class="option-card selected" data-type="video">
+                    <i class="fas fa-film"></i>
+                    <h3>Video</h3>
+                    <p>Download as video file</p>
+                </div>
+                <div class="option-card" data-type="audio">
+                    <i class="fas fa-music"></i>
+                    <h3>Audio</h3>
+                    <p>Extract audio only</p>
+                </div>
+            </div>
+            
+            <div class="quality-select">
+                <label for="quality">Quality:</label>
+                <select id="quality">
+                    <option value="high">High Quality (720p/1080p)</option>
+                    <option value="medium" selected>Medium Quality (480p)</option>
+                    <option value="low">Low Quality (144p/240p)</option>
+                </select>
+            </div>
+            
+            <button id="download-btn">
+                <i class="fas fa-download"></i>
+                Download
+            </button>
+            
+            <div class="instructions">
+                <h3>How to use:</h3>
+                <ol>
+                    <li>Copy the URL of the YouTube video you want to download</li>
+                    <li>Paste it in the input field above</li>
+                    <li>Select whether you want video or audio</li>
+                    <li>Choose your preferred quality</li>
+                    <li>Click the Download button</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+            <p>Processing your request, please wait...</p>
+        </div>
+        
+        <div class="result" id="result">
+            <!-- Results will be shown here -->
+        </div>
+        
+        <div class="footer">
+            <p>Note: This tool is for educational purposes only. Please respect copyright laws.</p>
+            <p>Downloaded files will be automatically deleted after 1 hour.</p>
+        </div>
+    </div>
+
+ <script>
     document.addEventListener('DOMContentLoaded', function() {
         const optionCards = document.querySelectorAll('.option-card');
         const downloadBtn = document.getElementById('download-btn');
@@ -49,16 +367,12 @@
                     body: formData
                 });
                 
-                // Hide loader
-                loader.style.display = 'none';
-                
                 if (response.ok) {
                     // Get filename from content-disposition header
                     const contentDisposition = response.headers.get('content-disposition');
-                    const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-                    const filename = filenameMatch ? filenameMatch[1] : 'download';
+                    const filename = contentDisposition.split('filename=')[1].replace(/"/g, '');
                     
-                    // Create blob from response
+                    // Convert response to blob
                     const blob = await response.blob();
                     
                     // Create download link
@@ -77,12 +391,14 @@
                     
                     showResult(`Your ${selectedType === 'video' ? 'video' : 'audio'} has been downloaded!`, 'success');
                 } else {
-                    const error = await response.text();
-                    showResult(`Error: ${error}`, 'error');
+                    const error = await response.json();
+                    showResult(`Error: ${error.message}`, 'error');
                 }
             } catch (error) {
-                loader.style.display = 'none';
                 showResult(`Error: ${error.message}`, 'error');
+            } finally {
+                // Hide loader
+                loader.style.display = 'none';
             }
         });
         
@@ -105,3 +421,5 @@
         }
     });
 </script>
+</body>
+</html>
