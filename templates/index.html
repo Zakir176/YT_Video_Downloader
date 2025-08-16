@@ -1,0 +1,107 @@
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const optionCards = document.querySelectorAll('.option-card');
+        const downloadBtn = document.getElementById('download-btn');
+        const urlInput = document.getElementById('url');
+        const loader = document.getElementById('loader');
+        const resultDiv = document.getElementById('result');
+        
+        let selectedType = 'video';
+        
+        // Handle option selection
+        optionCards.forEach(card => {
+            card.addEventListener('click', function() {
+                optionCards.forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedType = this.dataset.type;
+            });
+        });
+        
+        // Handle download button click
+        downloadBtn.addEventListener('click', async function() {
+            const url = urlInput.value.trim();
+            const quality = document.getElementById('quality').value;
+            
+            if (!url) {
+                showResult('Please enter a YouTube URL', 'error');
+                return;
+            }
+            
+            if (!isValidYouTubeUrl(url)) {
+                showResult('Please enter a valid YouTube URL', 'error');
+                return;
+            }
+            
+            // Show loader
+            loader.style.display = 'block';
+            resultDiv.style.display = 'none';
+            
+            try {
+                // Create form data
+                const formData = new FormData();
+                formData.append('url', url);
+                formData.append('type', selectedType);
+                formData.append('quality', quality);
+                
+                // Send request to backend
+                const response = await fetch('/download', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                // Hide loader
+                loader.style.display = 'none';
+                
+                if (response.ok) {
+                    // Get filename from content-disposition header
+                    const contentDisposition = response.headers.get('content-disposition');
+                    const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                    const filename = filenameMatch ? filenameMatch[1] : 'download';
+                    
+                    // Create blob from response
+                    const blob = await response.blob();
+                    
+                    // Create download link
+                    const downloadUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    
+                    // Clean up
+                    setTimeout(() => {
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(downloadUrl);
+                    }, 100);
+                    
+                    showResult(`Your ${selectedType === 'video' ? 'video' : 'audio'} has been downloaded!`, 'success');
+                } else {
+                    const error = await response.text();
+                    showResult(`Error: ${error}`, 'error');
+                }
+            } catch (error) {
+                loader.style.display = 'none';
+                showResult(`Error: ${error.message}`, 'error');
+            }
+        });
+        
+        // Validate YouTube URL
+        function isValidYouTubeUrl(url) {
+            const regExp = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
+            return regExp.test(url);
+        }
+        
+        // Show result message
+        function showResult(message, type) {
+            resultDiv.textContent = message;
+            resultDiv.className = 'result ' + type;
+            resultDiv.style.display = 'block';
+            
+            // Clear URL field on success
+            if (type === 'success') {
+                urlInput.value = '';
+            }
+        }
+    });
+</script>
